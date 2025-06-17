@@ -1,0 +1,4 @@
+name: Phoenix-Life
+version: '1.0-SNAPSHOT'
+main: tict.phoenixLife.PhoenixLife
+api-version: '1.21'
