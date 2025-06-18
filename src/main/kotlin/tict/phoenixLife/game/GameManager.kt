@@ -39,9 +39,16 @@ class GameManager(private val plugin: PhoenixLife) {
     
     fun resumeGame() {
         plugin.configManager.setGamePaused(false)
-        plugin.roundTimer.resume()
         
-        plugin.server.broadcast(net.kyori.adventure.text.Component.text("The game has been resumed. Deaths will deduct lives again.", net.kyori.adventure.text.format.NamedTextColor.GREEN))
+        // Only reset timer if it has run out of time, otherwise just resume
+        val remainingTime = plugin.configManager.getRemainingTime()
+        if (remainingTime <= 0) {
+            plugin.roundTimer.start() // Reset timer to full duration
+            plugin.server.broadcast(net.kyori.adventure.text.Component.text("The game has been resumed. Timer has been reset to full duration.", net.kyori.adventure.text.format.NamedTextColor.GREEN))
+        } else {
+            plugin.roundTimer.resume() // Resume from where it was paused
+            plugin.server.broadcast(net.kyori.adventure.text.Component.text("The game has been resumed. Deaths will deduct lives again.", net.kyori.adventure.text.format.NamedTextColor.GREEN))
+        }
     }
     
     fun handlePlayerDeath(player: Player) {
