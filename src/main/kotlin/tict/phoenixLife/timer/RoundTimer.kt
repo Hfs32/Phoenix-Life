@@ -39,8 +39,9 @@ class RoundTimer(private val plugin: PhoenixLife) {
     fun resume() {
         if (timerTask != null) return // Already running
         
-        startTime = System.currentTimeMillis()
         val remaining = plugin.configManager.getRemainingTime()
+        val elapsed = plugin.configManager.getRoundDuration() - remaining
+        startTime = System.currentTimeMillis() - elapsed
         
         timerTask = object : BukkitRunnable() {
             override fun run() {
