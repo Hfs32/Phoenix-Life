@@ -1,6 +1,5 @@
 package tict.phoenixLife.timer
 
-import org.bukkit.ChatColor
 import org.bukkit.scheduler.BukkitRunnable
 import org.bukkit.scheduler.BukkitTask
 import tict.phoenixLife.PhoenixLife

@@ -1,6 +1,7 @@
 package tict.phoenixLife.commands
 
-import org.bukkit.ChatColor
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
@@ -13,7 +14,7 @@ class PhoenixCommands(private val plugin: PhoenixLife) : CommandExecutor, TabCom
     
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
         if (!sender.hasPermission("phoenixlife.admin")) {
-            sender.sendMessage("${ChatColor.RED}You don't have permission to use this command!")
+            sender.sendMessage(Component.text("You don't have permission to use this command!", NamedTextColor.RED))
             return true
         }
         
@@ -35,7 +36,7 @@ class PhoenixCommands(private val plugin: PhoenixLife) : CommandExecutor, TabCom
             "stopglow" -> handleStopGlow(sender)
             "help" -> sendHelp(sender)
             else -> {
-                sender.sendMessage("${ChatColor.RED}Unknown subcommand. Use /phoenixlife help")
+                sender.sendMessage(Component.text("Unknown subcommand. Use /phoenixlife help", NamedTextColor.RED))
                 return true
             }
         }
@@ -45,22 +46,22 @@ class PhoenixCommands(private val plugin: PhoenixLife) : CommandExecutor, TabCom
     
     private fun handleStart(sender: CommandSender) {
         plugin.gameManager.startGame()
-        sender.sendMessage("${ChatColor.GREEN}Game started successfully!")
+        sender.sendMessage(Component.text("Game started successfully!", NamedTextColor.GREEN))
     }
     
     private fun handlePause(sender: CommandSender) {
         plugin.gameManager.pauseGame()
-        sender.sendMessage("${ChatColor.YELLOW}Game paused successfully!")
+        sender.sendMessage(Component.text("Game paused successfully!", NamedTextColor.YELLOW))
     }
     
     private fun handleResume(sender: CommandSender) {
         plugin.gameManager.resumeGame()
-        sender.sendMessage("${ChatColor.GREEN}Game resumed successfully!")
+        sender.sendMessage(Component.text("Game resumed successfully!", NamedTextColor.GREEN))
     }
     
     private fun handleSetMaxTime(sender: CommandSender, args: Array<out String>) {
         if (args.size < 2) {
-            sender.sendMessage("${ChatColor.RED}Usage: /phoenixlife setmaxtime <HH:MM:SS>")
+            sender.sendMessage(Component.text("Usage: /phoenixlife setmaxtime <HH:MM:SS>", NamedTextColor.RED))
             return
         }
         
@@ -68,7 +69,7 @@ class PhoenixCommands(private val plugin: PhoenixLife) : CommandExecutor, TabCom
         val timeParts = timeString.split(":")
         
         if (timeParts.size != 3) {
-            sender.sendMessage("${ChatColor.RED}Time must be in format HH:MM:SS")
+            sender.sendMessage(Component.text("Time must be in format HH:MM:SS", NamedTextColor.RED))
             return
         }
         
@@ -80,15 +81,15 @@ class PhoenixCommands(private val plugin: PhoenixLife) : CommandExecutor, TabCom
             val totalMillis = (hours * 3600000L) + (minutes * 60000L) + (seconds * 1000L)
             plugin.roundTimer.setMaxDuration(totalMillis)
             
-            sender.sendMessage("${ChatColor.GREEN}Max round time set to $timeString")
+            sender.sendMessage(Component.text("Max round time set to $timeString", NamedTextColor.GREEN))
         } catch (e: NumberFormatException) {
-            sender.sendMessage("${ChatColor.RED}Invalid time format!")
+            sender.sendMessage(Component.text("Invalid time format!", NamedTextColor.RED))
         }
     }
     
     private fun handleSetTime(sender: CommandSender, args: Array<out String>) {
         if (args.size < 2) {
-            sender.sendMessage("${ChatColor.RED}Usage: /phoenixlife settime <HH:MM:SS>")
+            sender.sendMessage(Component.text("Usage: /phoenixlife settime <HH:MM:SS>", NamedTextColor.RED))
             return
         }
         
@@ -96,7 +97,7 @@ class PhoenixCommands(private val plugin: PhoenixLife) : CommandExecutor, TabCom
         val timeParts = timeString.split(":")
         
         if (timeParts.size != 3) {
-            sender.sendMessage("${ChatColor.RED}Time must be in format HH:MM:SS")
+            sender.sendMessage(Component.text("Time must be in format HH:MM:SS", NamedTextColor.RED))
             return
         }
         
@@ -108,78 +109,78 @@ class PhoenixCommands(private val plugin: PhoenixLife) : CommandExecutor, TabCom
             val totalMillis = (hours * 3600000L) + (minutes * 60000L) + (seconds * 1000L)
             plugin.roundTimer.setRemainingTime(totalMillis)
             
-            sender.sendMessage("${ChatColor.GREEN}Remaining time set to $timeString")
+            sender.sendMessage(Component.text("Remaining time set to $timeString", NamedTextColor.GREEN))
         } catch (e: NumberFormatException) {
-            sender.sendMessage("${ChatColor.RED}Invalid time format!")
+            sender.sendMessage(Component.text("Invalid time format!", NamedTextColor.RED))
         }
     }
     
     private fun handleAddLives(sender: CommandSender, args: Array<out String>) {
         if (args.size < 3) {
-            sender.sendMessage("${ChatColor.RED}Usage: /phoenixlife addlives <player> <amount>")
+            sender.sendMessage(Component.text("Usage: /phoenixlife addlives <player> <amount>", NamedTextColor.RED))
             return
         }
         
         val target = plugin.server.getPlayer(args[1])
         if (target == null) {
-            sender.sendMessage("${ChatColor.RED}Player not found!")
+            sender.sendMessage(Component.text("Player not found!", NamedTextColor.RED))
             return
         }
         
         try {
             val amount = args[2].toInt()
             plugin.livesManager.addLives(target, amount)
-            sender.sendMessage("${ChatColor.GREEN}Added $amount lives to ${target.name}")
+            sender.sendMessage(Component.text("Added $amount lives to ${target.name}", NamedTextColor.GREEN))
         } catch (e: NumberFormatException) {
-            sender.sendMessage("${ChatColor.RED}Amount must be a number!")
+            sender.sendMessage(Component.text("Amount must be a number!", NamedTextColor.RED))
         }
     }
     
     private fun handleRemoveLives(sender: CommandSender, args: Array<out String>) {
         if (args.size < 3) {
-            sender.sendMessage("${ChatColor.RED}Usage: /phoenixlife removelives <player> <amount>")
+            sender.sendMessage(Component.text("Usage: /phoenixlife removelives <player> <amount>", NamedTextColor.RED))
             return
         }
         
         val target = plugin.server.getPlayer(args[1])
         if (target == null) {
-            sender.sendMessage("${ChatColor.RED}Player not found!")
+            sender.sendMessage(Component.text("Player not found!", NamedTextColor.RED))
             return
         }
         
         try {
             val amount = args[2].toInt()
             plugin.livesManager.removeLives(target, amount)
-            sender.sendMessage("${ChatColor.GREEN}Removed $amount lives from ${target.name}")
+            sender.sendMessage(Component.text("Removed $amount lives from ${target.name}", NamedTextColor.GREEN))
         } catch (e: NumberFormatException) {
-            sender.sendMessage("${ChatColor.RED}Amount must be a number!")
+            sender.sendMessage(Component.text("Amount must be a number!", NamedTextColor.RED))
         }
     }
     
     private fun handleSetLives(sender: CommandSender, args: Array<out String>) {
         if (args.size < 3) {
-            sender.sendMessage("${ChatColor.RED}Usage: /phoenixlife setlives <player> <amount>")
+            sender.sendMessage(Component.text("Usage: /phoenixlife setlives <player> <amount>", NamedTextColor.RED))
             return
         }
         
         val target = plugin.server.getPlayer(args[1])
         if (target == null) {
-            sender.sendMessage("${ChatColor.RED}Player not found!")
+            sender.sendMessage(Component.text("Player not found!", NamedTextColor.RED))
             return
         }
         
         try {
             val amount = args[2].toInt()
             plugin.livesManager.setLives(target, amount)
-            sender.sendMessage("${ChatColor.GREEN}Set ${target.name}'s lives to $amount")
+            sender.sendMessage(Component.text("Set ${target.name}'s lives to $amount", NamedTextColor.GREEN))
         } catch (e: NumberFormatException) {
-            sender.sendMessage("${ChatColor.RED}Amount must be a number!")
+            sender.sendMessage(Component.text("Amount must be a number!", NamedTextColor.RED))
         }
     }
     
     private fun handleGlow(sender: CommandSender, args: Array<out String>) {
         if (args.size < 2) {
-            sender.sendMessage("${ChatColor.RED}Usage: /phoenixlife glow <darkgreen|green|yellow|red|gray>")
+            sender.sendMessage(Component.text("Usage: /phoenixlife glow <darkgreen|green|yellow|red|gray>", NamedTextColor.RED))
             return
         }
         
@@ -190,7 +191,7 @@ class PhoenixCommands(private val plugin: PhoenixLife) : CommandExecutor, TabCom
             "red" -> LivesManager.NameColor.RED
             "gray", "grey" -> LivesManager.NameColor.GRAY
             else -> {
-                sender.sendMessage("${ChatColor.RED}Invalid color! Use: darkgreen, green, yellow, red, or gray")
+                sender.sendMessage(Component.text("Invalid color! Use: darkgreen, green, yellow, red, or gray", NamedTextColor.RED))
                 return
             }
         }
@@ -203,17 +204,17 @@ class PhoenixCommands(private val plugin: PhoenixLife) : CommandExecutor, TabCom
     }
     
     private fun sendHelp(sender: CommandSender) {
-        sender.sendMessage("${ChatColor.GOLD}=== Phoenix Life Commands ===")
-        sender.sendMessage("${ChatColor.YELLOW}/phoenixlife start ${ChatColor.WHITE}- Start the game")
-        sender.sendMessage("${ChatColor.YELLOW}/phoenixlife pause ${ChatColor.WHITE}- Pause the game")
-        sender.sendMessage("${ChatColor.YELLOW}/phoenixlife resume ${ChatColor.WHITE}- Resume the game")
-        sender.sendMessage("${ChatColor.YELLOW}/phoenixlife setmaxtime <HH:MM:SS> ${ChatColor.WHITE}- Set max round time")
-        sender.sendMessage("${ChatColor.YELLOW}/phoenixlife settime <HH:MM:SS> ${ChatColor.WHITE}- Set remaining time")
-        sender.sendMessage("${ChatColor.YELLOW}/phoenixlife addlives <player> <amount> ${ChatColor.WHITE}- Add lives")
-        sender.sendMessage("${ChatColor.YELLOW}/phoenixlife removelives <player> <amount> ${ChatColor.WHITE}- Remove lives")
-        sender.sendMessage("${ChatColor.YELLOW}/phoenixlife setlives <player> <amount> ${ChatColor.WHITE}- Set lives")
-        sender.sendMessage("${ChatColor.YELLOW}/phoenixlife glow <color> ${ChatColor.WHITE}- Make players glow by color")
-        sender.sendMessage("${ChatColor.YELLOW}/phoenixlife stopglow ${ChatColor.WHITE}- Stop all glowing")
+        sender.sendMessage(Component.text("=== Phoenix Life Commands ===", NamedTextColor.GOLD))
+        sender.sendMessage(Component.text("/phoenixlife start", NamedTextColor.YELLOW).append(Component.text(" - Start the game", NamedTextColor.WHITE)))
+        sender.sendMessage(Component.text("/phoenixlife pause", NamedTextColor.YELLOW).append(Component.text(" - Pause the game", NamedTextColor.WHITE)))
+        sender.sendMessage(Component.text("/phoenixlife resume", NamedTextColor.YELLOW).append(Component.text(" - Resume the game", NamedTextColor.WHITE)))
+        sender.sendMessage(Component.text("/phoenixlife setmaxtime <HH:MM:SS>", NamedTextColor.YELLOW).append(Component.text(" - Set max round time", NamedTextColor.WHITE)))
+        sender.sendMessage(Component.text("/phoenixlife settime <HH:MM:SS>", NamedTextColor.YELLOW).append(Component.text(" - Set remaining time", NamedTextColor.WHITE)))
+        sender.sendMessage(Component.text("/phoenixlife addlives <player> <amount>", NamedTextColor.YELLOW).append(Component.text(" - Add lives", NamedTextColor.WHITE)))
+        sender.sendMessage(Component.text("/phoenixlife removelives <player> <amount>", NamedTextColor.YELLOW).append(Component.text(" - Remove lives", NamedTextColor.WHITE)))
+        sender.sendMessage(Component.text("/phoenixlife setlives <player> <amount>", NamedTextColor.YELLOW).append(Component.text(" - Set lives", NamedTextColor.WHITE)))
+        sender.sendMessage(Component.text("/phoenixlife glow <color>", NamedTextColor.YELLOW).append(Component.text(" - Make players glow by color", NamedTextColor.WHITE)))
+        sender.sendMessage(Component.text("/phoenixlife stopglow", NamedTextColor.YELLOW).append(Component.text(" - Stop all glowing", NamedTextColor.WHITE)))
     }
     
     override fun onTabComplete(sender: CommandSender, command: Command, alias: String, args: Array<out String>): List<String> {

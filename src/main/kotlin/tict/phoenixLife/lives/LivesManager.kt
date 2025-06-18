@@ -1,6 +1,7 @@
 package tict.phoenixLife.lives
 
-import org.bukkit.ChatColor
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.GameMode
 import org.bukkit.attribute.Attribute
 import org.bukkit.entity.Player
@@ -77,16 +78,16 @@ class LivesManager(private val plugin: PhoenixLife) {
     
     private fun updateNameColor(player: Player, lives: Int) {
         val color = getColorForLives(lives)
-        val colorCode = when (color) {
-            NameColor.DARK_GREEN -> ChatColor.DARK_GREEN
-            NameColor.GREEN -> ChatColor.GREEN
-            NameColor.YELLOW -> ChatColor.YELLOW
-            NameColor.RED -> ChatColor.RED
-            NameColor.GRAY -> ChatColor.GRAY
+        val namedTextColor = when (color) {
+            NameColor.DARK_GREEN -> NamedTextColor.DARK_GREEN
+            NameColor.GREEN -> NamedTextColor.GREEN
+            NameColor.YELLOW -> NamedTextColor.YELLOW
+            NameColor.RED -> NamedTextColor.RED
+            NameColor.GRAY -> NamedTextColor.GRAY
         }
         
-        player.setDisplayName("${colorCode}${player.name}${ChatColor.RESET}")
-        player.setPlayerListName("${colorCode}${player.name}${ChatColor.RESET}")
+        player.displayName(Component.text(player.name, namedTextColor))
+        player.playerListName(Component.text(player.name, namedTextColor))
     }
     
     fun getColorForLives(lives: Int): NameColor {

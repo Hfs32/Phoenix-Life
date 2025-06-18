@@ -1,6 +1,7 @@
 package tict.phoenixLife.game
 
-import org.bukkit.ChatColor
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.GameMode
 import org.bukkit.entity.Player
 import tict.phoenixLife.PhoenixLife
@@ -59,7 +60,7 @@ class GameManager(private val plugin: PhoenixLife) {
                 val remainingLives = plugin.livesManager.getLives(player)
                 
                 if (remainingLives > 0) {
-                    player.sendMessage("${ChatColor.RED}You died! You have ${remainingLives} lives remaining.")
+                    player.sendMessage(Component.text("You died! You have ${remainingLives} lives remaining.", NamedTextColor.RED))
                 }
             }
         }
