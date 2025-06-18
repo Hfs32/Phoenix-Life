@@ -26,22 +26,22 @@ class GameManager(private val plugin: PhoenixLife) {
         // Start the timer
         plugin.roundTimer.start()
         
-        plugin.server.broadcastMessage("${ChatColor.GREEN}The Phoenix Life game has started!")
-        plugin.server.broadcastMessage("${ChatColor.YELLOW}Each player starts with 10 lives. Good luck!")
+        plugin.server.broadcast(net.kyori.adventure.text.Component.text("The Phoenix Life game has started!", net.kyori.adventure.text.format.NamedTextColor.GREEN))
+        plugin.server.broadcast(net.kyori.adventure.text.Component.text("Each player starts with 10 lives. Good luck!", net.kyori.adventure.text.format.NamedTextColor.YELLOW))
     }
     
     fun pauseGame() {
         plugin.configManager.setGamePaused(true)
         plugin.roundTimer.pause()
         
-        plugin.server.broadcastMessage("${ChatColor.YELLOW}The game has been paused. Deaths will not deduct lives.")
+        plugin.server.broadcast(net.kyori.adventure.text.Component.text("The game has been paused. Deaths will not deduct lives.", net.kyori.adventure.text.format.NamedTextColor.YELLOW))
     }
     
     fun resumeGame() {
         plugin.configManager.setGamePaused(false)
         plugin.roundTimer.resume()
         
-        plugin.server.broadcastMessage("${ChatColor.GREEN}The game has been resumed. Deaths will deduct lives again.")
+        plugin.server.broadcast(net.kyori.adventure.text.Component.text("The game has been resumed. Deaths will deduct lives again.", net.kyori.adventure.text.format.NamedTextColor.GREEN))
     }
     
     fun handlePlayerDeath(player: Player) {
@@ -74,13 +74,13 @@ class GameManager(private val plugin: PhoenixLife) {
             tict.phoenixLife.lives.LivesManager.NameColor.GRAY -> "Gray"
         }
         
-        plugin.server.broadcastMessage("${ChatColor.AQUA}All ${colorName} players are now glowing!")
+        plugin.server.broadcast(net.kyori.adventure.text.Component.text("All ${colorName} players are now glowing!", net.kyori.adventure.text.format.NamedTextColor.AQUA))
     }
     
     fun stopGlowing() {
         plugin.server.onlinePlayers.forEach { player ->
             player.isGlowing = false
         }
-        plugin.server.broadcastMessage("${ChatColor.AQUA}All players stopped glowing.")
+        plugin.server.broadcast(net.kyori.adventure.text.Component.text("All players stopped glowing.", net.kyori.adventure.text.format.NamedTextColor.AQUA))
     }
 }

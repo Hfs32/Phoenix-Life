@@ -94,7 +94,7 @@ class RoundTimer(private val plugin: PhoenixLife) {
             timerTask?.cancel()
             timerTask = null
             plugin.gameManager.pauseGame()
-            plugin.server.broadcastMessage("${ChatColor.RED}Round timer has expired! The game is now paused.")
+            plugin.server.broadcast(net.kyori.adventure.text.Component.text("Round timer has expired! The game is now paused.", net.kyori.adventure.text.format.NamedTextColor.RED))
         } else {
             // Announce time remaining at specific intervals
             val remainingSeconds = TimeUnit.MILLISECONDS.toSeconds(remaining)
@@ -112,7 +112,7 @@ class RoundTimer(private val plugin: PhoenixLife) {
     }
     
     private fun announceTime(timeString: String) {
-        plugin.server.broadcastMessage("${ChatColor.YELLOW}Time remaining: $timeString")
+        plugin.server.broadcast(net.kyori.adventure.text.Component.text("Time remaining: $timeString", net.kyori.adventure.text.format.NamedTextColor.YELLOW))
     }
     
     private fun isRunning(): Boolean {

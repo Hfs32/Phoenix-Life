@@ -32,7 +32,7 @@ class LivesManager(private val plugin: PhoenixLife) {
             if (player.gameMode != GameMode.SPECTATOR) {
                 player.gameMode = GameMode.SPECTATOR
                 strikeWithLightning(player)
-                plugin.server.broadcastMessage("${ChatColor.RED}${player.name} has been eliminated!")
+                plugin.server.broadcast(net.kyori.adventure.text.Component.text("${player.name} has been eliminated!", net.kyori.adventure.text.format.NamedTextColor.RED))
             }
         } else if (player.gameMode == GameMode.SPECTATOR) {
             player.gameMode = GameMode.SURVIVAL
@@ -62,11 +62,16 @@ class LivesManager(private val plugin: PhoenixLife) {
             else -> 20.0 // Spectator keeps default
         }
         
-        player.getAttribute(Attribute.MAX_HEALTH)?.baseValue = maxHearts
-        
-        // Ensure current health doesn't exceed max
-        if (player.health > maxHearts) {
-            player.health = maxHearts
+        val attribute = player.getAttribute(Attribute.MAX_HEALTH)
+        if (attribute != null) {
+            attribute.baseValue = maxHearts
+            
+            // Ensure current health doesn't exceed max
+            if (player.health > maxHearts) {
+                player.health = maxHearts
+            }
+        } else {
+            plugin.logger.warning("Could not get MAX_HEALTH attribute for player ${player.name}")
         }
     }
     
