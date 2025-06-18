@@ -1,4 +1,17 @@
 name: Phoenix-Life
-version: '1.0-SNAPSHOT'
+version: '${version}'
 main: tict.phoenixLife.PhoenixLife
 api-version: '1.21'
+description: A lives-based survival plugin where players start with 10 lives and gain max hearts as they lose them
+
+commands:
+  phoenixlife:
+    description: Main command for Phoenix Life plugin
+    permission: phoenixlife.admin
+    usage: /<command> help
+    aliases: [pl, phoenix]
+
+permissions:
+  phoenixlife.admin:
+    description: Allows access to all Phoenix Life admin commands
+    default: op
