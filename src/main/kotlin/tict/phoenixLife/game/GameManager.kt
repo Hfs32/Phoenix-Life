@@ -2,9 +2,13 @@ package tict.phoenixLife.game
 
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
+import org.bukkit.Color
+import org.bukkit.FireworkEffect
 import org.bukkit.GameMode
+import org.bukkit.entity.Firework
 import org.bukkit.entity.Player
 import tict.phoenixLife.PhoenixLife
+import tict.phoenixLife.lives.LivesManager
 
 class GameManager(private val plugin: PhoenixLife) {
     
@@ -13,6 +17,12 @@ class GameManager(private val plugin: PhoenixLife) {
     }
     
     fun startGame() {
+        // Check if there are at least 2 players
+        if (plugin.server.onlinePlayers.size < 2) {
+            plugin.server.broadcast(Component.text("Cannot start game with fewer than 2 players!", NamedTextColor.RED))
+            return
+        }
+        
         // Reset all players to 10 lives
         plugin.server.onlinePlayers.forEach { player ->
             plugin.livesManager.setLives(player, 10)
@@ -27,8 +37,8 @@ class GameManager(private val plugin: PhoenixLife) {
         // Start the timer
         plugin.roundTimer.start()
         
-        plugin.server.broadcast(net.kyori.adventure.text.Component.text("The Phoenix Life game has started!", net.kyori.adventure.text.format.NamedTextColor.GREEN))
-        plugin.server.broadcast(net.kyori.adventure.text.Component.text("Each player starts with 10 lives. Good luck!", net.kyori.adventure.text.format.NamedTextColor.YELLOW))
+        plugin.server.broadcast(Component.text("The Phoenix Life game has started!", NamedTextColor.GREEN))
+        plugin.server.broadcast(Component.text("Each player starts with 10 lives. Good luck!", NamedTextColor.YELLOW))
     }
     
     fun pauseGame() {
@@ -62,6 +72,11 @@ class GameManager(private val plugin: PhoenixLife) {
                 if (remainingLives > 0) {
                     player.sendMessage(Component.text("You died! You have ${remainingLives} lives remaining.", NamedTextColor.RED))
                 }
+                
+                // Check for victory only if timer is running
+                if (plugin.roundTimer.isRunning()) {
+                    checkForVictory()
+                }
             }
         }
     }
@@ -90,5 +105,103 @@ class GameManager(private val plugin: PhoenixLife) {
             player.isGlowing = false
         }
         plugin.server.broadcast(net.kyori.adventure.text.Component.text("All players stopped glowing.", net.kyori.adventure.text.format.NamedTextColor.AQUA))
+    }
+    
+    fun endGame() {
+        // Create backup
+        if (plugin.configManager.createBackup()) {
+            plugin.server.broadcast(Component.text("Game data backed up successfully.", NamedTextColor.GREEN))
+        }
+        
+        // Stop timer
+        plugin.roundTimer.stop()
+        
+        // Reset all player data
+        plugin.configManager.resetAllPlayerData()
+        
+        // Set game to paused
+        plugin.configManager.setGamePaused(true)
+        
+        // Reset all players
+        plugin.server.onlinePlayers.forEach { player ->
+            if (player.gameMode == GameMode.SPECTATOR) {
+                player.gameMode = GameMode.SURVIVAL
+            }
+            plugin.livesManager.updateNameColor(player, 10)
+            player.isGlowing = false
+        }
+        
+        plugin.server.broadcast(Component.text("The Phoenix Life game has ended.", NamedTextColor.GOLD))
+    }
+    
+    private fun checkForVictory() {
+        val playersWithLives = getPlayersWithLives()
+        
+        if (playersWithLives.size == 1) {
+            val winner = playersWithLives.first()
+            
+            // Spawn victory fireworks
+            spawnVictoryFireworks(winner)
+            
+            // Broadcast victory message
+            plugin.server.broadcast(Component.text("${winner.name} has won the Phoenix Life game!", NamedTextColor.GOLD))
+            
+            // Pause the game
+            pauseGame()
+        }
+    }
+    
+    private fun getPlayersWithLives(): List<Player> {
+        return plugin.server.onlinePlayers.filter { player ->
+            plugin.livesManager.getLives(player) > 0
+        }
+    }
+    
+    private fun spawnVictoryFireworks(winner: Player) {
+        repeat(5) {
+            plugin.server.scheduler.runTaskLater(plugin, Runnable {
+                val fw = winner.world.spawn(winner.location, Firework::class.java)
+                val fwm = fw.fireworkMeta
+                
+                // Random colors
+                val colors = listOf(Color.RED, Color.BLUE, Color.GREEN, Color.YELLOW, Color.PURPLE, Color.ORANGE, Color.WHITE)
+                val primaryColor = colors.random()
+                val fadeColor = colors.random()
+                
+                // Random effect types
+                val types = listOf(
+                    FireworkEffect.Type.BALL_LARGE,
+                    FireworkEffect.Type.STAR,
+                    FireworkEffect.Type.BURST,
+                    FireworkEffect.Type.CREEPER
+                )
+                
+                val effect = FireworkEffect.builder()
+                    .withColor(primaryColor)
+                    .withFade(fadeColor)
+                    .with(types.random())
+                    .trail(true)
+                    .flicker(true)
+                    .build()
+                
+                fwm.addEffect(effect)
+                fwm.power = 2
+                fw.fireworkMeta = fwm
+            }, (it * 10L)) // Stagger fireworks
+        }
+    }
+    
+    private fun LivesManager.updateNameColor(player: Player, lives: Int) {
+        val color = getColorForLives(lives)
+        val namedTextColor = when (color) {
+            LivesManager.NameColor.DARK_GREEN -> NamedTextColor.DARK_GREEN
+            LivesManager.NameColor.GREEN -> NamedTextColor.GREEN
+            LivesManager.NameColor.YELLOW -> NamedTextColor.YELLOW
+            LivesManager.NameColor.RED -> NamedTextColor.RED
+            LivesManager.NameColor.GRAY -> NamedTextColor.GRAY
+        }
+        
+        player.displayName(Component.text(player.name, namedTextColor))
+        player.playerListName(Component.text(player.name, namedTextColor))
     }
 }

@@ -115,7 +115,7 @@ class RoundTimer(private val plugin: PhoenixLife) {
         plugin.server.broadcast(net.kyori.adventure.text.Component.text("Time remaining: $timeString", net.kyori.adventure.text.format.NamedTextColor.YELLOW))
     }
     
-    private fun isRunning(): Boolean {
+    fun isRunning(): Boolean {
         return timerTask != null
     }
 }

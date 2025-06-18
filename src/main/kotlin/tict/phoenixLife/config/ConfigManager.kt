@@ -3,6 +3,8 @@ package tict.phoenixLife.config
 import org.bukkit.configuration.file.YamlConfiguration
 import tict.phoenixLife.PhoenixLife
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.UUID
 
 class ConfigManager(private val plugin: PhoenixLife) {
@@ -79,6 +81,26 @@ class ConfigManager(private val plugin: PhoenixLife) {
     
     fun setTimerStartTime(startTime: Long) {
         dataConfig.set("timer.startTime", startTime)
+        saveConfig()
+    }
+    
+    fun createBackup(): Boolean {
+        return try {
+            val timestamp = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(Date())
+            val backupFile = File(plugin.dataFolder, "data_backup_$timestamp.yml")
+            dataFile.copyTo(backupFile, overwrite = false)
+            plugin.logger.info("Created backup: ${backupFile.name}")
+            true
+        } catch (e: Exception) {
+            plugin.logger.severe("Failed to create backup: ${e.message}")
+            false
+        }
+    }
+    
+    fun resetAllPlayerData() {
+        dataConfig.getConfigurationSection("players")?.getKeys(false)?.forEach { uuidString ->
+            dataConfig.set("players.$uuidString", null)
+        }
         saveConfig()
     }
 }

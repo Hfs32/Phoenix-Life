@@ -27,6 +27,7 @@ class PhoenixCommands(private val plugin: PhoenixLife) : CommandExecutor, TabCom
             "start" -> handleStart(sender)
             "pause" -> handlePause(sender)
             "resume" -> handleResume(sender)
+            "end" -> handleEnd(sender)
             "setmaxtime" -> handleSetMaxTime(sender, args)
             "settime" -> handleSetTime(sender, args)
             "addlives" -> handleAddLives(sender, args)
@@ -57,6 +58,11 @@ class PhoenixCommands(private val plugin: PhoenixLife) : CommandExecutor, TabCom
     private fun handleResume(sender: CommandSender) {
         plugin.gameManager.resumeGame()
         sender.sendMessage(Component.text("Game resumed successfully!", NamedTextColor.GREEN))
+    }
+    
+    private fun handleEnd(sender: CommandSender) {
+        plugin.gameManager.endGame()
+        sender.sendMessage(Component.text("Game ended successfully!", NamedTextColor.GOLD))
     }
     
     private fun handleSetMaxTime(sender: CommandSender, args: Array<out String>) {
@@ -208,6 +214,7 @@ class PhoenixCommands(private val plugin: PhoenixLife) : CommandExecutor, TabCom
         sender.sendMessage(Component.text("/phoenixlife start", NamedTextColor.YELLOW).append(Component.text(" - Start the game", NamedTextColor.WHITE)))
         sender.sendMessage(Component.text("/phoenixlife pause", NamedTextColor.YELLOW).append(Component.text(" - Pause the game", NamedTextColor.WHITE)))
         sender.sendMessage(Component.text("/phoenixlife resume", NamedTextColor.YELLOW).append(Component.text(" - Resume the game", NamedTextColor.WHITE)))
+        sender.sendMessage(Component.text("/phoenixlife end", NamedTextColor.YELLOW).append(Component.text(" - End the game and backup data", NamedTextColor.WHITE)))
         sender.sendMessage(Component.text("/phoenixlife setmaxtime <HH:MM:SS>", NamedTextColor.YELLOW).append(Component.text(" - Set max round time", NamedTextColor.WHITE)))
         sender.sendMessage(Component.text("/phoenixlife settime <HH:MM:SS>", NamedTextColor.YELLOW).append(Component.text(" - Set remaining time", NamedTextColor.WHITE)))
         sender.sendMessage(Component.text("/phoenixlife addlives <player> <amount>", NamedTextColor.YELLOW).append(Component.text(" - Add lives", NamedTextColor.WHITE)))
@@ -223,7 +230,7 @@ class PhoenixCommands(private val plugin: PhoenixLife) : CommandExecutor, TabCom
         }
         
         return when (args.size) {
-            1 -> listOf("start", "pause", "resume", "setmaxtime", "settime", "addlives", "removelives", "setlives", "glow", "stopglow", "help")
+            1 -> listOf("start", "pause", "resume", "end", "setmaxtime", "settime", "addlives", "removelives", "setlives", "glow", "stopglow", "help")
                 .filter { it.startsWith(args[0].lowercase()) }
             
             2 -> when (args[0].lowercase()) {
