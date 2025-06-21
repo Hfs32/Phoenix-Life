@@ -104,6 +104,31 @@ class LivesManager(private val plugin: PhoenixLife) {
         player.world.strikeLightningEffect(player.location)
     }
     
+    fun resetToVanilla(player: Player) {
+        // Reset max hearts to vanilla default (20 health = 10 hearts)
+        val attribute = player.getAttribute(Attribute.MAX_HEALTH)
+        if (attribute != null) {
+            attribute.baseValue = 20.0
+            
+            // Ensure current health doesn't exceed max
+            if (player.health > 20.0) {
+                player.health = 20.0
+            }
+        }
+        
+        // Reset display name and player list name to default (no color)
+        player.displayName(Component.text(player.name))
+        player.playerListName(Component.text(player.name))
+        
+        // Remove glow effect
+        player.isGlowing = false
+        
+        // Set to survival mode if in spectator
+        if (player.gameMode == GameMode.SPECTATOR) {
+            player.gameMode = GameMode.SURVIVAL
+        }
+    }
+    
     enum class NameColor {
         DARK_GREEN,
         GREEN,

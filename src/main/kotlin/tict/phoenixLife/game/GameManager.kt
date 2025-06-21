@@ -16,11 +16,19 @@ class GameManager(private val plugin: PhoenixLife) {
         return plugin.configManager.isGamePaused()
     }
     
-    fun startGame() {
+    fun startGame(): Boolean {
         // Check if there are at least 2 players
         if (plugin.server.onlinePlayers.size < 2) {
             plugin.server.broadcast(Component.text("Cannot start game with fewer than 2 players!", NamedTextColor.RED))
-            return
+            return false
+        }
+        
+        // Mark game as initialized
+        plugin.configManager.setGameInitialized(true)
+        
+        // Start scoreboard updates if not already running
+        if (!plugin.scoreboardManager.isUpdating()) {
+            plugin.scoreboardManager.startUpdating()
         }
         
         // Reset all players to 10 lives
@@ -39,6 +47,8 @@ class GameManager(private val plugin: PhoenixLife) {
         
         plugin.server.broadcast(Component.text("The Phoenix Life game has started!", NamedTextColor.GREEN))
         plugin.server.broadcast(Component.text("Each player starts with 10 lives. Good luck!", NamedTextColor.YELLOW))
+        
+        return true
     }
     
     fun pauseGame() {
@@ -70,7 +80,44 @@ class GameManager(private val plugin: PhoenixLife) {
                 val remainingLives = plugin.livesManager.getLives(player)
                 
                 if (remainingLives > 0) {
-                    player.sendMessage(Component.text("You died! You have ${remainingLives} lives remaining.", NamedTextColor.RED))
+                    val color = plugin.livesManager.getColorForLives(remainingLives)
+                    val teamName = when (color) {
+                        LivesManager.NameColor.DARK_GREEN -> "Dark Green"
+                        LivesManager.NameColor.GREEN -> "Green"
+                        LivesManager.NameColor.YELLOW -> "Yellow"
+                        LivesManager.NameColor.RED -> "Red"
+                        LivesManager.NameColor.GRAY -> "Gray"
+                    }
+                    
+                    val teamColor = when (color) {
+                        LivesManager.NameColor.DARK_GREEN -> NamedTextColor.DARK_GREEN
+                        LivesManager.NameColor.GREEN -> NamedTextColor.GREEN
+                        LivesManager.NameColor.YELLOW -> NamedTextColor.YELLOW
+                        LivesManager.NameColor.RED -> NamedTextColor.RED
+                        LivesManager.NameColor.GRAY -> NamedTextColor.GRAY
+                    }
+                    
+                    val maxHearts = when (remainingLives) {
+                        10 -> 1
+                        9 -> 2
+                        8 -> 3
+                        7 -> 4
+                        6 -> 5
+                        5 -> 6
+                        4 -> 7
+                        3 -> 8
+                        2 -> 9
+                        1 -> 10
+                        else -> 10
+                    }
+                    
+                    player.sendMessage(Component.text("☠ You died! ", NamedTextColor.DARK_RED)
+                        .append(Component.text("You have ", NamedTextColor.WHITE))
+                        .append(Component.text("${remainingLives} lives", teamColor))
+                        .append(Component.text(" remaining.", NamedTextColor.WHITE)))
+                    
+                    player.sendMessage(Component.text("Team: ", NamedTextColor.WHITE)
+                        .append(Component.text(teamName, teamColor)))
                 }
                 
                 // Check for victory only if timer is running
@@ -79,6 +126,13 @@ class GameManager(private val plugin: PhoenixLife) {
                 }
             }
         }
+    }
+    
+    fun glowAllPlayers() {
+        plugin.server.onlinePlayers.forEach { player ->
+            player.isGlowing = true
+        }
+        plugin.server.broadcast(Component.text("All players are now glowing!", NamedTextColor.AQUA))
     }
     
     fun glowPlayersByColor(color: tict.phoenixLife.lives.LivesManager.NameColor) {
@@ -97,41 +151,74 @@ class GameManager(private val plugin: PhoenixLife) {
             tict.phoenixLife.lives.LivesManager.NameColor.GRAY -> "Gray"
         }
         
-        plugin.server.broadcast(net.kyori.adventure.text.Component.text("All ${colorName} players are now glowing!", net.kyori.adventure.text.format.NamedTextColor.AQUA))
+        plugin.server.broadcast(Component.text("All ${colorName} players are now glowing!", NamedTextColor.AQUA))
     }
     
     fun stopGlowing() {
         plugin.server.onlinePlayers.forEach { player ->
             player.isGlowing = false
         }
-        plugin.server.broadcast(net.kyori.adventure.text.Component.text("All players stopped glowing.", net.kyori.adventure.text.format.NamedTextColor.AQUA))
+        plugin.server.broadcast(Component.text("All players stopped glowing.", NamedTextColor.AQUA))
+    }
+    
+    fun stopGlowingByColor(color: LivesManager.NameColor) {
+        var stoppedCount = 0
+        plugin.server.onlinePlayers.forEach { player ->
+            val playerLives = plugin.livesManager.getLives(player)
+            val playerColor = plugin.livesManager.getColorForLives(playerLives)
+            
+            if (playerColor == color && player.isGlowing) {
+                player.isGlowing = false
+                stoppedCount++
+            }
+        }
+        
+        val colorName = when (color) {
+            LivesManager.NameColor.DARK_GREEN -> "Dark Green"
+            LivesManager.NameColor.GREEN -> "Green"
+            LivesManager.NameColor.YELLOW -> "Yellow"
+            LivesManager.NameColor.RED -> "Red"
+            LivesManager.NameColor.GRAY -> "Gray"
+        }
+        
+        if (stoppedCount > 0) {
+            plugin.server.broadcast(Component.text("All ${colorName} players stopped glowing.", NamedTextColor.AQUA))
+        } else {
+            plugin.server.broadcast(Component.text("No ${colorName} players were glowing.", NamedTextColor.YELLOW))
+        }
     }
     
     fun endGame() {
         // Create backup
         if (plugin.configManager.createBackup()) {
-            plugin.server.broadcast(Component.text("Game data backed up successfully.", NamedTextColor.GREEN))
+            // Only notify admins about backup
+            plugin.server.onlinePlayers.forEach { player ->
+                if (player.hasPermission("phoenixlife.admin")) {
+                    player.sendMessage(Component.text("Game data backed up successfully.", NamedTextColor.GREEN))
+                }
+            }
         }
         
-        // Stop timer
+        // Stop timer completely
         plugin.roundTimer.stop()
         
-        // Reset all player data
-        plugin.configManager.resetAllPlayerData()
+        // Clean up scoreboard and stop updates
+        plugin.scoreboardManager.cleanup()
         
-        // Set game to paused
-        plugin.configManager.setGamePaused(true)
-        
-        // Reset all players
+        // Reset all players to vanilla state
         plugin.server.onlinePlayers.forEach { player ->
-            if (player.gameMode == GameMode.SPECTATOR) {
-                player.gameMode = GameMode.SURVIVAL
-            }
-            plugin.livesManager.updateNameColor(player, 10)
-            player.isGlowing = false
+            plugin.livesManager.resetToVanilla(player)
         }
         
+        // Reset all player data in config
+        plugin.configManager.resetAllPlayerData()
+        
+        // Set game to paused and uninitialized
+        plugin.configManager.setGamePaused(true)
+        plugin.configManager.setGameInitialized(false)
+        
         plugin.server.broadcast(Component.text("The Phoenix Life game has ended.", NamedTextColor.GOLD))
+        plugin.server.broadcast(Component.text("All game features have been disabled. Server is now in vanilla mode.", NamedTextColor.GRAY))
     }
     
     private fun checkForVictory() {
@@ -189,19 +276,5 @@ class GameManager(private val plugin: PhoenixLife) {
                 fw.fireworkMeta = fwm
             }, (it * 10L)) // Stagger fireworks
         }
-    }
-    
-    private fun LivesManager.updateNameColor(player: Player, lives: Int) {
-        val color = getColorForLives(lives)
-        val namedTextColor = when (color) {
-            LivesManager.NameColor.DARK_GREEN -> NamedTextColor.DARK_GREEN
-            LivesManager.NameColor.GREEN -> NamedTextColor.GREEN
-            LivesManager.NameColor.YELLOW -> NamedTextColor.YELLOW
-            LivesManager.NameColor.RED -> NamedTextColor.RED
-            LivesManager.NameColor.GRAY -> NamedTextColor.GRAY
-        }
-        
-        player.displayName(Component.text(player.name, namedTextColor))
-        player.playerListName(Component.text(player.name, namedTextColor))
     }
 }

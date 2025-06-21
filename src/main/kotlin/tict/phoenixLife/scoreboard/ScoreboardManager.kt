@@ -49,11 +49,48 @@ class ScoreboardManager(private val plugin: PhoenixLife) {
         updateTask = null
     }
     
+    fun isUpdating(): Boolean {
+        return updateTask != null
+    }
+    
+    fun cleanup() {
+        // Stop the update task
+        stopUpdating()
+        
+        // Clear all team entries
+        teams.values.forEach { team ->
+            team.entries.forEach { entry ->
+                team.removeEntry(entry)
+            }
+        }
+        
+        // Unregister all teams
+        teams.values.forEach { team ->
+            team.unregister()
+        }
+        teams.clear()
+        
+        // Reset all player scoreboards to default
+        plugin.server.onlinePlayers.forEach { player ->
+            player.scoreboard = Bukkit.getScoreboardManager().mainScoreboard
+        }
+        
+        // Clear action bars by sending empty component
+        plugin.server.onlinePlayers.forEach { player ->
+            player.sendActionBar(Component.empty())
+        }
+    }
+    
     private fun updateTimer() {
+        // Only update if game is initialized
+        if (!plugin.configManager.isGameInitialized()) {
+            return
+        }
+        
         // Update player team assignments for name coloring
         updatePlayerTeams()
         
-        // Display timer in action bar
+        // Display timer and lives in action bar
         val timerFormatted = plugin.roundTimer.getRemainingTimeFormatted()
         val timerColor = if (plugin.gameManager.isGamePaused()) {
             NamedTextColor.RED
@@ -61,11 +98,32 @@ class ScoreboardManager(private val plugin: PhoenixLife) {
             NamedTextColor.GREEN
         }
         
-        val timerComponent = Component.text(timerFormatted, timerColor)
-        
-        // Send action bar to all online players
+        // Send personalized action bar to all online players
         plugin.server.onlinePlayers.forEach { player ->
-            player.sendActionBar(timerComponent)
+            val lives = plugin.livesManager.getLives(player)
+            val color = plugin.livesManager.getColorForLives(lives)
+            
+            val livesColor = when (color) {
+                LivesManager.NameColor.DARK_GREEN -> NamedTextColor.DARK_GREEN
+                LivesManager.NameColor.GREEN -> NamedTextColor.GREEN
+                LivesManager.NameColor.YELLOW -> NamedTextColor.YELLOW
+                LivesManager.NameColor.RED -> NamedTextColor.RED
+                LivesManager.NameColor.GRAY -> NamedTextColor.GRAY
+            }
+            
+            val actionBarComponent = if (lives > 0) {
+                Component.text("Timer: ", NamedTextColor.WHITE)
+                    .append(Component.text(timerFormatted, timerColor))
+                    .append(Component.text(" | Lives: ", NamedTextColor.WHITE))
+                    .append(Component.text("${lives}/10", livesColor))
+            } else {
+                Component.text("Timer: ", NamedTextColor.WHITE)
+                    .append(Component.text(timerFormatted, timerColor))
+                    .append(Component.text(" | ", NamedTextColor.WHITE))
+                    .append(Component.text("SPECTATOR", NamedTextColor.GRAY))
+            }
+            
+            player.sendActionBar(actionBarComponent)
         }
     }
     

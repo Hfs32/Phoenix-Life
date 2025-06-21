@@ -4,6 +4,7 @@ import org.bukkit.plugin.java.JavaPlugin
 import tict.phoenixLife.config.ConfigManager
 import tict.phoenixLife.game.GameManager
 import tict.phoenixLife.commands.PhoenixCommands
+import tict.phoenixLife.commands.PlayerCommands
 import tict.phoenixLife.listeners.PlayerDeathListener
 import tict.phoenixLife.listeners.PlayerJoinListener
 import tict.phoenixLife.lives.LivesManager
@@ -32,14 +33,18 @@ class PhoenixLife : JavaPlugin() {
         
         // Register commands
         getCommand("phoenixlife")?.setExecutor(PhoenixCommands(this))
+        getCommand("lives")?.setExecutor(PlayerCommands(this))
         
         // Load configurations
         configManager.loadConfig()
         
-        // Start scoreboard updates
-        scoreboardManager.startUpdating()
-        
-        logger.info("Phoenix-Life has been enabled!")
+        // Only start scoreboard updates if game has been initialized
+        if (configManager.isGameInitialized()) {
+            scoreboardManager.startUpdating()
+            logger.info("Phoenix-Life has been enabled! Game is active.")
+        } else {
+            logger.info("Phoenix-Life has been enabled! Waiting for game to start.")
+        }
     }
 
     override fun onDisable() {

@@ -56,6 +56,15 @@ class ConfigManager(private val plugin: PhoenixLife) {
         saveConfig()
     }
     
+    fun isGameInitialized(): Boolean {
+        return dataConfig.getBoolean("game.initialized", false)
+    }
+    
+    fun setGameInitialized(initialized: Boolean) {
+        dataConfig.set("game.initialized", initialized)
+        saveConfig()
+    }
+    
     // Timer management
     fun getRoundDuration(): Long {
         return dataConfig.getLong("timer.duration", 10800000) // Default 3 hours in milliseconds

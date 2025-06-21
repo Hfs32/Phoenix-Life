@@ -10,8 +10,15 @@ commands:
     permission: phoenixlife.admin
     usage: /<command> help
     aliases: [pl, phoenix]
+  lives:
+    description: Check your current lives
+    permission: phoenixlife.player
+    usage: /<command>
 
 permissions:
   phoenixlife.admin:
     description: Allows access to all Phoenix Life admin commands
     default: op
+  phoenixlife.player:
+    description: Allows players to check their own lives
+    default: true
