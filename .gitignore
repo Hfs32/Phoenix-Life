@@ -4,6 +4,9 @@ run
 ## IDEs
 .idea
 
+## MacOS
+**/.DS_Store
+
 ## Gradle
 .gradle
 **/build/
